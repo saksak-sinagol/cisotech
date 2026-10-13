@@ -2,6 +2,7 @@
 require_once 'includes/db.php';
 require_once 'includes/auth.php';
 require_once 'includes/spec_schema.php';
+require_once 'includes/inventory_rules.php';
 require_login();
 
 $pageTitle = 'Inventory';
@@ -95,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add_i
     $poNumber    = trim($_POST['po_number'] ?? '');
     $dateAdded   = $_POST['date_added'] ?? date('Y-m-d');
     $timeAdded   = $_POST['time_added'] ?? date('H:i:s');
-    $threshold   = max(0, (int)($_POST['low_stock_threshold'] ?? 5));
+    $threshold   = normalize_low_stock_threshold($_POST['low_stock_threshold'] ?? 5);
     $details     = trim($_POST['details'] ?? '');
 
     $itemNames   = $_POST['item_name'] ?? [];
@@ -115,21 +116,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add_i
         foreach ($itemNames as $idx => $rawName) {
             $itemName   = trim($rawName ?? '');
             $itemTypeId = (int)($itemTypeIds[$idx] ?? 0);
-            $qty        = max(1, (int)($quantities[$idx] ?? 1));
+            $qty        = normalize_inventory_quantity($quantities[$idx] ?? 1);
             if ($itemName === '' || $itemTypeId === 0) {
                 continue;
             }
-            $rowUnitPns = [];
-            $missingPn = false;
-            for ($u = 0; $u < $qty; $u++) {
-                $unitPn = trim($unitPnsByRow[$idx][$u] ?? '');
-                if ($unitPn === '') { $missingPn = true; break; }
-                $rowUnitPns[] = $unitPn;
-            }
-            if ($missingPn) {
-                $rowError = 'A PN Number is required for every unit.';
+            $unitPnValidation = validate_unit_property_numbers($unitPnsByRow[$idx] ?? [], $qty);
+            if (!$unitPnValidation['valid']) {
+                $rowError = $unitPnValidation['error'];
                 continue;
             }
+            $rowUnitPns = $unitPnValidation['unit_pns'];
             $pnNumber = $rowUnitPns[0];
             $rowSerials = $serialsByRow[$idx] ?? [];
             $rowSpecValues = $specValuesByRow[$idx] ?? [];
@@ -142,12 +138,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add_i
         if (empty($results)) {
             $errorMsg = $rowError !== '' ? $rowError : 'Item model, kind of item, and a PN Number for every unit are required for at least one row.';
         } else {
-            $addedCount = count(array_filter($results, function($r){ return !$r['is_restock']; }));
-            $restockedCount = count($results) - $addedCount;
-            $parts = [];
-            if ($addedCount) $parts[] = "$addedCount new item" . ($addedCount === 1 ? '' : 's') . ' added';
-            if ($restockedCount) $parts[] = "$restockedCount item" . ($restockedCount === 1 ? '' : 's') . ' restocked';
-            $successMsg = implode(' and ', $parts) . " under PO #$poNumber." . ($rowError !== '' ? ' (Some rows were skipped: ' . $rowError . ')' : '');
+            $summary = summarize_inventory_restock_results($results);
+            $successMsg = $summary['message'] . " under PO #$poNumber." . ($rowError !== '' ? ' (Some rows were skipped: ' . $rowError . ')' : '');
         }
     }
 }

@@ -2,6 +2,7 @@
 require_once 'includes/db.php';
 require_once 'includes/auth.php';
 require_once 'includes/spec_schema.php';
+require_once 'includes/deployment_rules.php';
 require_login();
 
 $pageTitle = 'Deployments';
@@ -19,19 +20,14 @@ function deploy_one_item($conn, $userId, $itemId, $deptId, $recipientName, $poNu
     $itemRow->execute();
     $item = $itemRow->get_result()->fetch_assoc();
 
-    if (!$item || $deptId === 0) {
-        return ['ok' => false, 'error' => 'Please select a valid item and department.', 'item_name' => null, 'deployment_id' => null];
-    }
-    if ($poNumber === '') {
-        return ['ok' => false, 'error' => 'PO Number is required for every item.', 'item_name' => $item['item_name'], 'deployment_id' => null];
-    }
-    if ($pnNumber === '') {
-        return ['ok' => false, 'error' => 'PN Number is required.', 'item_name' => $item['item_name'], 'deployment_id' => null];
-    }
-
-    $available = $item['quantity_total'] - $item['deployed_qty'];
-    if ($qty > $available) {
-        return ['ok' => false, 'error' => "Only $available unit(s) of \"{$item['item_name']}\" left to deploy.", 'item_name' => $item['item_name'], 'deployment_id' => null];
+    $validationError = deployment_validation_error($item, $deptId, $poNumber, $pnNumber, $qty);
+    if ($validationError !== null) {
+        return [
+            'ok' => false,
+            'error' => $validationError,
+            'item_name' => $item['item_name'] ?? null,
+            'deployment_id' => null,
+        ];
     }
 
     $stmt = $conn->prepare(
@@ -64,16 +60,11 @@ function deploy_one_item($conn, $userId, $itemId, $deptId, $recipientName, $poNu
     $batchesRes->execute();
     $batches = $batchesRes->get_result()->fetch_all(MYSQLI_ASSOC);
 
-    $remaining = $qty;
-    foreach ($batches as $batch) {
-        if ($remaining <= 0) break;
-        $batchLeft = (int)$batch['batch_left'];
-        if ($batchLeft <= 0) continue;
-        $take = min($batchLeft, $remaining);
+    $batchPlan = plan_deployment_batch_consumption($qty, $batches);
+    foreach ($batchPlan['allocations'] as $allocation) {
         $cstmt = $conn->prepare("INSERT INTO deployment_batch_consumption (deployment_id, batch_id, quantity) VALUES (?,?,?)");
-        $cstmt->bind_param('iii', $deploymentId, $batch['id'], $take);
+        $cstmt->bind_param('iii', $deploymentId, $allocation['batch_id'], $allocation['quantity']);
         $cstmt->execute();
-        $remaining -= $take;
     }
 
     $deptNameRes = $conn->prepare("SELECT name FROM departments WHERE id=?");
@@ -124,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submi
     $mrNumber = trim($_POST['mr_number'] ?? '');
 
     $deploymentType = $_POST['deployment_type'] ?? 'new';
-    if (!in_array($deploymentType, ['new', 'replacement'], true)) $deploymentType = 'new';
+    $deploymentType = normalize_deployment_type($deploymentType);
     $replacesDeploymentId = (int)($_POST['replaces_deployment_id'] ?? 0);
     $cartJson = $_POST['cart'] ?? '[]';
     $cart = json_decode($cartJson, true);
