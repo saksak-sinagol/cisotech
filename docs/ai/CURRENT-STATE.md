@@ -5,9 +5,8 @@ Last updated: 2026-10-13
 ## Active phase and objective
 
 - Phase: VALIDATION (approved UI quality improvements).
-- Objective: verify changes for loading/empty/error states, validation
-  feedback, mobile layout, keyboard navigation, alternative text, and color
-  contrast.
+- Objective: validate and publish the approved accumulated workflow,
+  performance, refactor, formatting, and UI improvements.
 - Scope approval: user approved the proposed refactor plan in conversation on
   2026-10-13. Integration-test file splitting remains blocked pending an
   executable isolated HTTP test environment.
@@ -42,6 +41,9 @@ Last updated: 2026-10-13
 - Completed: UI review passed after the live-region correction. User approved
   isolating the UI changes; commit `35dcc1d` was pushed to remote branch
   `ui-quality-accessibility`. No pull request was created.
+- Completed: user authorized committing and pushing all pending changes.
+  Commit `6a0aa4b` containing 46 files was pushed to `origin/main` over SSH.
+  No application-server deployment was performed.
 - Validation passed: Chromium checks at 320px, 375px, and 768px; keyboard menu
   operation; color contrast; PHPUnit; PHP syntax and style; whitespace.
 - Pending: run the HTTP integration suite against its isolated test database,
@@ -111,6 +113,9 @@ Last updated: 2026-10-13
 - Not run: full authenticated E2E suite or assistive-technology testing.
 - Passed: isolated UI-only commit pushed to `origin/ui-quality-accessibility`;
   verified remote branch points to `35dcc1dd0ee85a053ae42253556a05864a42e7c9`.
+- Passed: after final commit, `composer test` (36 tests / 186 assertions),
+  `composer lint:php` (75 files), `composer validate --no-check-publish`,
+  `git diff HEAD --check`, and remote `main` SHA verification.
 - No first-party rendered `<img>` elements were found; bundled Adminer is
   third-party and was not modified.
 - Not run: the authenticated web migration page, EXPLAIN plans, or query
@@ -120,7 +125,8 @@ Last updated: 2026-10-13
   restored and the unit suite plus PHP lint passed afterward.
 - Not run: interactive VS Code discovery check; it requires opening/reloading
   the repository in the target VS Code/Copilot host.
-- The refactor worktree changes are uncommitted.
+- All previously staged, unstaged, and untracked work was committed and pushed
+  in `6a0aa4b`; the original worktree is clean.
 
 ## Approval status
 
@@ -133,6 +139,7 @@ Last updated: 2026-10-13
 ## Next action
 
 Review [the approved UI plan](../planning/ui-quality-plan.md) and run manual
-screen-reader/full authenticated E2E checks when available. The isolated UI
-branch is ready for a pull request. The pre-existing staged and unstaged
-changes remain in the original worktree and were not included in the push.
+screen-reader/full authenticated E2E checks when available. Configure the
+isolated HTTP integration-test environment and gather query plans before
+making performance claims. Changes are pushed to `origin/main`; no server
+deployment was requested or performed.

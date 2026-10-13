@@ -4,8 +4,8 @@ Updated: 2026-10-13
 
 ## Objective
 
-Continue validating the approved page refactor and performance improvements;
-run integration tests and collect query plans only in the isolated test
+Continue validation of the approved changes now pushed to `origin/main`; run
+integration tests and collect query plans only in the isolated test
 environment.
 
 ## Completed
@@ -80,6 +80,14 @@ environment.
   Chromium verified its text, role, and `aria-live` state.
 - No first-party images render in application pages; bundled Adminer is
   third-party and was left unchanged.
+- All pending staged, unstaged, and untracked changes were committed together
+  as `6a0aa4b` and pushed over SSH to `origin/main`. The working tree is clean.
+  The user clarified that this request was Git-only; no application server was
+  deployed to.
+- Final checks passed: `composer test` (36 tests / 186 assertions),
+  `composer lint:php` (75 PHP files), `composer validate --no-check-publish`,
+  and `git diff HEAD --check`. Remote `main` was verified at commit
+  `6a0aa4ba34cec16847b8af77d90ce9b290548db4`.
 
 ## Decisions
 
@@ -117,10 +125,9 @@ For UI work, review the completed evidence in
 `docs/planning/ui-quality-plan.md`; perform manual screen-reader testing when
 the supported assistive-technology/browser setup is available.
 
-The UI review passed after the live-region correction. Commit
-`35dcc1dd0ee85a053ae42253556a05864a42e7c9` contains only the isolated UI
-changes and was pushed to `origin/ui-quality-accessibility`; no pull request
-was created. The original `main` worktree remains unchanged with its
-pre-existing staged and unstaged work preserved. The isolated UI branch can
-now be opened as a pull request; full authenticated E2E and assistive-
-technology checks remain outstanding.
+The UI review passed after the live-region correction. Its isolated commit
+`35dcc1dd0ee85a053ae42253556a05864a42e7c9` remains on
+`origin/ui-quality-accessibility`; the complete change set is now included on
+`origin/main`. No server deployment was performed. Full authenticated E2E and
+assistive-technology checks remain outstanding; use only the isolated
+`cisotech_test_` database and loopback server for integration tests.
