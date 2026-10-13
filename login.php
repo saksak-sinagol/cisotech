@@ -65,17 +65,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <?php if ($error): ?>
-      <div class="login-error"><?php echo h($error); ?></div>
+      <div class="login-error" id="loginError" role="alert"><?php echo h($error); ?></div>
     <?php endif; ?>
 
     <form method="POST" class="login-form">
       <div class="field">
-        <label>Username</label>
-        <input type="text" name="username" autocomplete="username" required autofocus value="<?php echo h($_POST['username'] ?? ''); ?>">
+        <label for="loginUsername">Username</label>
+        <input type="text" id="loginUsername" name="username" autocomplete="username" required autofocus value="<?php echo h($_POST['username'] ?? ''); ?>" <?php echo $error ? 'aria-describedby="loginError"' : ''; ?>>
       </div>
       <div class="field">
-        <label>Password</label>
-        <input type="password" name="password" autocomplete="current-password" required>
+        <label for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" name="password" autocomplete="current-password" required <?php echo $error ? 'aria-describedby="loginError"' : ''; ?>>
       </div>
       <button type="submit" class="btn-primary btn-block">Login</button>
     </form>

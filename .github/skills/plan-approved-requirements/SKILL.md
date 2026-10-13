@@ -1,10 +1,9 @@
 ---
-name: "Plan Approved Requirements"
-description: "Design a repository-specific solution and independently verifiable implementation plan from approved requirements."
+name: plan-approved-requirements
+description: Design a repository-specific solution and independently verifiable implementation plan from approved requirements.
+disable-model-invocation: true
 argument-hint: "Point to approved requirements"
-agent: "Solution Architect"
 ---
-
 Read current state, workflow, project context, approved requirements/open
 questions, relevant code, and ADRs. Independently verify stakeholder approval
 and that no critical question blocks planning. Reuse the PHP/MariaDB design

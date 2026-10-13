@@ -85,7 +85,7 @@ if ($showWelcomeToast) unset($_SESSION['just_logged_in']);
   <main class="main">
     <div class="topbar">
       <div style="display:flex; gap:12px; align-items:center;">
-        <button class="mobile-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <button type="button" class="mobile-menu-btn" id="sidebarToggle" aria-controls="sidebar" aria-expanded="false" aria-label="Open navigation menu">☰</button>
         <div class="topbar-title">
           <?php echo h($pageTitle); ?>
           <span class="full-date"><?php echo date('l, F j, Y'); ?></span>
@@ -98,7 +98,7 @@ if ($showWelcomeToast) unset($_SESSION['just_logged_in']);
         <?php if ($unreadMsgCount > 0): ?><span class="icon-badge"><?php echo $unreadMsgCount > 9 ? '9+' : $unreadMsgCount; ?></span><?php endif; ?>
       </a>
       <div class="account-menu">
-        <button class="account-btn" onclick="document.getElementById('accountDropdown').classList.toggle('open')">
+        <button type="button" class="account-btn" id="accountDropdownToggle" aria-controls="accountDropdown" aria-expanded="false">
           <span class="account-avatar"><?php echo strtoupper(substr($user['full_name'],0,1)); ?></span>
           <span><?php echo h($user['full_name']); ?></span>
           <span class="account-role-badge role-<?php echo h($user['role']); ?>"><?php echo $user['role'] === 'superadmin' ? 'Super Admin' : h($user['role']); ?></span>
@@ -118,7 +118,7 @@ if ($showWelcomeToast) unset($_SESSION['just_logged_in']);
       </div>
     </div>
 
-    <div id="toastContainer" class="toast-container"></div>
+    <div id="toastContainer" class="toast-container" role="status" aria-live="polite" aria-atomic="false"></div>
     <?php if ($showWelcomeToast): ?>
     <script>
       document.addEventListener('DOMContentLoaded', function(){

@@ -1,10 +1,9 @@
 ---
-name: "Clarify Requirements"
-description: "Turn a confirmed idea into testable requirements, acceptance criteria, resolved questions, dependencies, and risks without implementation."
+name: clarify-requirements
+description: Turn a confirmed idea into testable requirements, acceptance criteria, resolved questions, dependencies, and risks without implementation.
+disable-model-invocation: true
 argument-hint: "Point to the approved idea brief"
-agent: "Requirements Analyst"
 ---
-
 Read current state, workflow, project context, and the approved idea.
 Independently verify that IDEA exit criteria and user confirmation are
 recorded. Inspect only relevant current behavior. Ask one focused question at

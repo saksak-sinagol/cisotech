@@ -1,10 +1,9 @@
 ---
-name: "Validate a Change"
-description: "Independently check approved acceptance criteria, run focused PHPUnit/pytest/browser checks, inspect diffs, and report actual results and gaps."
+name: validate-a-change
+description: Independently check approved acceptance criteria, run focused PHPUnit/pytest/browser checks, inspect diffs, and report actual results and gaps.
+disable-model-invocation: true
 argument-hint: "Identify the implementation increment or diff"
-agent: "QA Engineer"
 ---
-
 Read current state/workflow, approved criteria and plan, diff, and relevant
 test instructions. Map every criterion to a check. Run the narrowest
 sufficient test available; DB-backed tests must use isolated `cisotech_test_`

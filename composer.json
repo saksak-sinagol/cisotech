@@ -8,9 +8,12 @@
         "ext-mysqli": "*"
     },
     "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.92",
         "phpunit/phpunit": "^10.5"
     },
     "scripts": {
+        "lint:php": "php-cs-fixer fix --dry-run --diff --using-cache=no",
+        "format:php": "php-cs-fixer fix --using-cache=no",
         "test": "phpunit --configuration phpunit.xml",
         "test:coverage": "phpunit --configuration phpunit.xml --coverage-html=.phpunit.cache/coverage",
         "test:integration": "phpunit --configuration phpunit.integration.xml"

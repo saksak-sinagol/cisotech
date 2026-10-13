@@ -105,8 +105,8 @@ $users = $conn->query("SELECT * FROM users ORDER BY role DESC, full_name");
 include 'includes/header.php';
 ?>
 
-<?php if ($successMsg): ?><div class="alert alert-success"><?php echo h($successMsg); ?></div><?php endif; ?>
-<?php if ($errorMsg): ?><div class="alert alert-error"><?php echo h($errorMsg); ?></div><?php endif; ?>
+<?php if ($successMsg): ?><div class="alert alert-success" role="status"><?php echo h($successMsg); ?></div><?php endif; ?>
+<?php if ($errorMsg): ?><div class="alert alert-error" role="alert"><?php echo h($errorMsg); ?></div><?php endif; ?>
 
 <div class="panel">
   <div class="panel-header"><h2>Add Account (Admin or Staff)</h2></div>

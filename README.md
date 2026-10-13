@@ -63,3 +63,10 @@ CREATE TABLE request_rate_limits (
 ## Tests
 
 Install the development dependencies with `composer install`, then run the PHPUnit suite with `composer test`.
+
+## PHP formatting
+
+Run `composer lint:php` to check PHP formatting without modifying files, or
+`composer format:php` to apply the configured safe fixes. PHP-CS-Fixer uses a
+small project rule set to preserve the existing PHP/template style; the
+third-party `adminer.php` file is excluded. Review the diff after formatting.

@@ -1,10 +1,9 @@
 ---
-name: "Investigate a Bug"
-description: "Reproduce and trace a PHP application bug or failing test, distinguish evidence from hypotheses, and recommend a bounded fix."
+name: investigate-a-bug
+description: Reproduce and trace a PHP application bug or failing test, distinguish evidence from hypotheses, and recommend a bounded fix.
+disable-model-invocation: true
 argument-hint: "Describe expected and observed behavior"
-agent: "Implementation Agent"
 ---
-
 Read current state/workflow/context and inspect worktree status. Define expected
 versus observed behavior and reproduce with a focused safe test. Trace only the
 relevant route/domain helper/data flow. Report confirmed root cause separately

@@ -1,10 +1,9 @@
 ---
-name: "Execute Approved Task"
-description: "Implement one approved plan increment after verifying persisted approvals, scope, tests, and current worktree."
+name: execute-approved-task
+description: Implement one approved plan increment after verifying persisted approvals, scope, tests, and current worktree.
+disable-model-invocation: true
 argument-hint: "Identify the approved plan task"
-agent: "Implementation Agent"
 ---
-
 Before edits or state-changing commands, read current state/workflow/project
 context, approved requirements and plan, scoped instructions, relevant source
 and tests, and Git status. Independently verify approval on both requirements

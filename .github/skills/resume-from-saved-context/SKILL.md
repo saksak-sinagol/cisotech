@@ -1,10 +1,9 @@
 ---
-name: "Resume from Saved Context"
-description: "Resume work after a new chat or compaction by reconciling current state, handoff, approvals, worktree, and relevant task artifacts."
+name: resume-from-saved-context
+description: Resume work after a new chat or compaction by reconciling current state, handoff, approvals, worktree, and relevant task artifacts.
+disable-model-invocation: true
 argument-hint: "Optional objective or task reference"
-agent: "agent"
 ---
-
 Read `docs/ai/CURRENT-STATE.md`, `docs/ai/SESSION-HANDOFF.md`, and
 `docs/ai/WORKFLOW.md`; then load only referenced relevant project context,
 requirements, plan, and source. Check actual Git status and reconcile stale or

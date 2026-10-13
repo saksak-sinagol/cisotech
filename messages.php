@@ -82,7 +82,7 @@ if ($withId > 0) {
 include 'includes/header.php';
 ?>
 
-<?php if ($errorMsg): ?><div class="alert alert-error"><?php echo h($errorMsg); ?></div><?php endif; ?>
+<?php if ($errorMsg): ?><div class="alert alert-error" role="alert"><?php echo h($errorMsg); ?></div><?php endif; ?>
 
 <div class="msg-layout">
   <div class="panel msg-conv-list">
@@ -134,7 +134,8 @@ include 'includes/header.php';
         <?php echo csrf_field(); ?>
         <input type="hidden" name="action" value="send_message">
         <input type="hidden" name="recipient_id" value="<?php echo $otherUser['id']; ?>">
-        <textarea name="body" placeholder="Write a message..." required></textarea>
+        <label class="sr-only" for="messageBody">Message</label>
+        <textarea id="messageBody" name="body" placeholder="Write a message..." required></textarea>
         <button type="submit" class="btn-primary" data-loading-text="Sending...">Send</button>
       </form>
     <?php endif; ?>
@@ -170,8 +171,15 @@ include 'includes/header.php';
   .msg-bubble-time{ font-size:10px; margin-top:4px; opacity:.65; font-family:var(--font-mono); }
   .msg-composer{ display:flex; gap:10px; padding:14px 18px; border-top:1px solid var(--border-soft); }
   .msg-composer textarea{
-    flex:1; resize:none; min-height:44px; background:var(--bg); border:1px solid var(--border);
+    flex:1; min-width:0; resize:none; min-height:44px; background:var(--bg); border:1px solid var(--border);
     border-radius:6px; padding:10px 12px; color:var(--text); font-family:var(--font-ui); font-size:13.5px;
+  }
+  @media (max-width: 600px){
+    .msg-composer{ flex-wrap:wrap; padding:12px; }
+    .msg-composer textarea{ flex-basis:100%; width:100%; }
+    .msg-composer button{ margin-left:auto; }
+    .msg-thread-body{ padding:12px; }
+    .msg-bubble{ max-width:90%; }
   }
   @media (max-width: 900px){
     .msg-layout{ grid-template-columns:1fr; }

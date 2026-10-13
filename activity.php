@@ -31,14 +31,14 @@ $totalPages = max(1, ceil($total / $perPage));
 $stmt = $conn->prepare("SELECT * FROM activity_log WHERE module = ? ORDER BY created_at DESC LIMIT ? OFFSET ?");
 $stmt->bind_param('sii', $tab, $perPage, $offset);
 $stmt->execute();
-$logs = $stmt->get_result(); 
+$logs = $stmt->get_result();
 
-$tabCounts = [];
-foreach (array_keys($validTabs) as $m) {
-    $r = $conn->prepare("SELECT COUNT(*) c FROM activity_log WHERE module = ?");
-    $r->bind_param('s', $m);
-    $r->execute();
-    $tabCounts[$m] = (int)$r->get_result()->fetch_assoc()['c'];
+$tabCounts = array_fill_keys(array_keys($validTabs), 0);
+$tabCountRows = $conn->query("SELECT module, COUNT(*) AS total FROM activity_log GROUP BY module");
+while ($row = $tabCountRows->fetch_assoc()) {
+    if (array_key_exists($row['module'], $tabCounts)) {
+        $tabCounts[$row['module']] = (int)$row['total'];
+    }
 }
 
 include 'includes/header.php';

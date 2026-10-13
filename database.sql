@@ -60,7 +60,8 @@ CREATE TABLE IF NOT EXISTS work_logs (
   created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT fk_worklog_category FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL,
-  CONSTRAINT fk_worklog_user FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+  CONSTRAINT fk_worklog_user FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+  KEY idx_work_logs_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Photos attached to a work log entry (stored as files on disk, path saved here)
@@ -150,7 +151,8 @@ CREATE TABLE IF NOT EXISTS inventory_batches (
   added_by     INT UNSIGNED DEFAULT NULL,
   created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_batch_item FOREIGN KEY (item_id) REFERENCES inventory_items(id) ON DELETE CASCADE,
-  CONSTRAINT fk_batch_user FOREIGN KEY (added_by) REFERENCES users(id) ON DELETE SET NULL
+  CONSTRAINT fk_batch_user FOREIGN KEY (added_by) REFERENCES users(id) ON DELETE SET NULL,
+  KEY idx_batches_item_date_id (item_id, batch_date, id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ---------------------------------------------------------
@@ -185,7 +187,8 @@ CREATE TABLE IF NOT EXISTS inventory_remarks (
   added_by    INT UNSIGNED DEFAULT NULL,
   created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_remark_item FOREIGN KEY (item_id) REFERENCES inventory_items(id) ON DELETE CASCADE,
-  CONSTRAINT fk_remark_user FOREIGN KEY (added_by) REFERENCES users(id) ON DELETE SET NULL
+  CONSTRAINT fk_remark_user FOREIGN KEY (added_by) REFERENCES users(id) ON DELETE SET NULL,
+  KEY idx_remarks_item_date_id (item_id, remark_date, id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ---------------------------------------------------------
@@ -205,7 +208,9 @@ CREATE TABLE IF NOT EXISTS inventory_disposal_flags (
   reviewed_at        DATETIME DEFAULT NULL,
   created_at         DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_disposal_item FOREIGN KEY (item_id) REFERENCES inventory_items(id) ON DELETE CASCADE,
-  CONSTRAINT fk_disposal_user FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL
+  CONSTRAINT fk_disposal_user FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL,
+  KEY idx_disposal_item_activity_status (item_id, last_activity_date, status),
+  KEY idx_disposal_status_flagged_id (status, flagged_date, id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ---------------------------------------------------------
@@ -263,7 +268,10 @@ CREATE TABLE IF NOT EXISTS deployments (
   CONSTRAINT fk_deploy_item FOREIGN KEY (item_id) REFERENCES inventory_items(id) ON DELETE CASCADE,
   CONSTRAINT fk_deploy_dept FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE RESTRICT,
   CONSTRAINT fk_deploy_user FOREIGN KEY (deployed_by) REFERENCES users(id) ON DELETE SET NULL,
-  CONSTRAINT fk_deploy_replaces FOREIGN KEY (replaces_deployment_id) REFERENCES deployments(id) ON DELETE SET NULL
+  CONSTRAINT fk_deploy_replaces FOREIGN KEY (replaces_deployment_id) REFERENCES deployments(id) ON DELETE SET NULL,
+  KEY idx_deploy_item_returned_date_id (item_id, returned_date, deployed_date, id),
+  KEY idx_deploy_dept_recipient_returned (department_id, recipient_name, returned_date),
+  KEY idx_deploy_returned_type_date_id (returned_date, deployment_type, deployed_date, id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ---------------------------------------------------------
@@ -367,7 +375,8 @@ CREATE TABLE IF NOT EXISTS messages (
   CONSTRAINT fk_msg_sender FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
   CONSTRAINT fk_msg_recipient FOREIGN KEY (recipient_id) REFERENCES users(id) ON DELETE CASCADE,
   INDEX idx_msg_recipient_read (recipient_id, is_read),
-  INDEX idx_msg_conversation (sender_id, recipient_id, created_at)
+  INDEX idx_msg_conversation (sender_id, recipient_id, created_at),
+  INDEX idx_msg_reverse_conversation (recipient_id, sender_id, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ---------------------------------------------------------
@@ -382,7 +391,8 @@ CREATE TABLE IF NOT EXISTS activity_log (
   details     VARCHAR(400) DEFAULT NULL,
   module      VARCHAR(30) NOT NULL DEFAULT 'other',
   created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT fk_activity_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+  CONSTRAINT fk_activity_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+  KEY idx_activity_module_created_id (module, created_at, id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =========================================================
