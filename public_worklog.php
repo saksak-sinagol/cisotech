@@ -63,6 +63,7 @@ $totalDeployedRow = $conn->query("SELECT COUNT(*) c FROM deployments WHERE retur
   .public-header .brand-mark{ font-family:var(--font-mono); font-size:12px; letter-spacing:.1em; color:var(--accent-bright); margin-bottom:8px; }
   .public-header h1{ font-size:24px; font-weight:700; }
   .public-header p{ color:var(--text-dim); font-size:13px; margin-top:6px; }
+  .public-table-scroll{ max-width:100%; overflow-x:auto; }
   .public-filter-bar{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-bottom:22px; }
   .public-filter-bar input, .public-filter-bar select{
     background:var(--panel); border:1px solid var(--border); border-radius:5px;
@@ -79,9 +80,9 @@ $totalDeployedRow = $conn->query("SELECT COUNT(*) c FROM deployments WHERE retur
   </div>
 
   <form method="GET" class="public-filter-bar">
-    <input type="text" name="q" placeholder="Search description, item, requester..." value="<?php echo h($search); ?>">
-    <input type="date" name="date" value="<?php echo h($filterDate); ?>">
-    <select name="status">
+    <input type="text" name="q" aria-label="Search work log entries" placeholder="Search description, item, requester..." value="<?php echo h($search); ?>">
+    <input type="date" name="date" aria-label="Filter work log entries by date" value="<?php echo h($filterDate); ?>">
+    <select name="status" aria-label="Filter work log entries by status">
       <option value="">All Status</option>
       <option value="done" <?php echo $filterStatus==='done'?'selected':''; ?>>Done</option>
       <option value="ongoing" <?php echo $filterStatus==='ongoing'?'selected':''; ?>>Ongoing</option>
@@ -93,6 +94,7 @@ $totalDeployedRow = $conn->query("SELECT COUNT(*) c FROM deployments WHERE retur
 
   <div class="panel">
     <div class="panel-body" style="padding:0;">
+      <div class="public-table-scroll" role="region" aria-label="Work log entries table" tabindex="0">
       <table class="data-table">
         <thead>
           <tr>
@@ -128,6 +130,7 @@ $totalDeployedRow = $conn->query("SELECT COUNT(*) c FROM deployments WHERE retur
           <?php endif; ?>
         </tbody>
       </table>
+      </div>
     </div>
   </div>
 
@@ -138,6 +141,7 @@ $totalDeployedRow = $conn->query("SELECT COUNT(*) c FROM deployments WHERE retur
 
   <div class="panel">
     <div class="panel-body" style="padding:0;">
+      <div class="public-table-scroll" role="region" aria-label="Currently deployed items table" tabindex="0">
       <table class="data-table">
         <thead>
           <tr>
@@ -168,6 +172,7 @@ $totalDeployedRow = $conn->query("SELECT COUNT(*) c FROM deployments WHERE retur
           <?php endif; ?>
         </tbody>
       </table>
+      </div>
     </div>
   </div>
 

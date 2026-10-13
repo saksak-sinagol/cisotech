@@ -519,8 +519,8 @@ while ($cmRow = $compMapRes->fetch_assoc()) {
 include 'includes/header.php';
 ?>
 
-<?php if ($successMsg): ?><div class="alert alert-success"><?php echo h($successMsg); ?></div><?php endif; ?>
-<?php if ($errorMsg): ?><div class="alert alert-error"><?php echo h($errorMsg); ?></div><?php endif; ?>
+<?php if ($successMsg): ?><div class="alert alert-success" role="status"><?php echo h($successMsg); ?></div><?php endif; ?>
+<?php if ($errorMsg): ?><div class="alert alert-error" role="alert"><?php echo h($errorMsg); ?></div><?php endif; ?>
 
 <div id="deployDetailsBackdrop" class="login-modal-backdrop item-details-backdrop" onclick="closeDeployDetails()">
   <div class="login-modal-card item-details-card" onclick="event.stopPropagation();">

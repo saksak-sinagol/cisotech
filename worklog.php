@@ -122,8 +122,8 @@ $categories = $conn->query("SELECT * FROM categories ORDER BY name");
 include 'includes/header.php';
 ?>
 
-<?php if ($successMsg): ?><div class="alert alert-success"><?php echo h($successMsg); ?></div><?php endif; ?>
-<?php if ($errorMsg): ?><div class="alert alert-error"><?php echo h($errorMsg); ?></div><?php endif; ?>
+<?php if ($successMsg): ?><div class="alert alert-success" role="status"><?php echo h($successMsg); ?></div><?php endif; ?>
+<?php if ($errorMsg): ?><div class="alert alert-error" role="alert" id="worklogError"><?php echo h($errorMsg); ?></div><?php endif; ?>
 
 <div class="panel">
   <div class="panel-header">
@@ -135,26 +135,26 @@ include 'includes/header.php';
       <input type="hidden" name="action" value="add_entry">
       <div class="field-row">
         <div class="field">
-          <label>Date</label>
-          <input type="date" name="log_date" value="<?php echo date('Y-m-d'); ?>" required>
+          <label for="worklogDate">Date</label>
+          <input type="date" id="worklogDate" name="log_date" value="<?php echo date('Y-m-d'); ?>" required>
         </div>
         <div class="field">
-          <label>Time (e.g. 7:00 am)</label>
-          <input type="text" name="log_time" placeholder="e.g. 7:00 am" required>
+          <label for="worklogTime">Time (e.g. 7:00 am)</label>
+          <input type="text" id="worklogTime" name="log_time" placeholder="e.g. 7:00 am" required>
         </div>
       </div>
       <div class="field">
-        <label>Item Name (optional)</label>
-        <input type="text" name="item_name" placeholder="e.g. LAN Cable, Power Supply Unit, Router">
+        <label for="worklogItemName">Item Name (optional)</label>
+        <input type="text" id="worklogItemName" name="item_name" placeholder="e.g. LAN Cable, Power Supply Unit, Router">
       </div>
       <div class="field">
-        <label>Task Description</label>
-        <textarea name="description" placeholder="What did you do?" required></textarea>
+        <label for="worklogDescription">Task Description</label>
+        <textarea id="worklogDescription" name="description" placeholder="What did you do?" required></textarea>
       </div>
       <div class="field-row">
         <div class="field">
-          <label>Category</label>
-          <select name="category_id">
+          <label for="worklogCategory">Category</label>
+          <select id="worklogCategory" name="category_id">
             <option value="">— None —</option>
             <?php $categories->data_seek(0); while ($c = $categories->fetch_assoc()): ?>
               <option value="<?php echo $c['id']; ?>"><?php echo h($c['name']); ?></option>
@@ -162,8 +162,8 @@ include 'includes/header.php';
           </select>
         </div>
         <div class="field">
-          <label>Status</label>
-          <select name="status">
+          <label for="worklogStatus">Status</label>
+          <select id="worklogStatus" name="status">
             <option value="done">Done</option>
             <option value="ongoing">Ongoing</option>
             <option value="pending">Pending</option>
@@ -172,15 +172,15 @@ include 'includes/header.php';
       </div>
       <div class="field-row">
         <div class="field">
-          <label>Item Remarks</label>
-          <select name="remarks">
+          <label for="worklogRemarks">Item Remarks</label>
+          <select id="worklogRemarks" name="remarks">
             <option value="ok">Okay</option>
             <option value="replace">Needs Replacement</option>
           </select>
         </div>
         <div class="field">
-          <label>Note Color Indicator</label>
-          <select name="note_color">
+          <label for="worklogNoteColor">Note Color Indicator</label>
+          <select id="worklogNoteColor" name="note_color">
             <option value="none">No Indicator</option>
             <option value="red">🔴 Red</option>
             <option value="green">🟢 Green</option>
@@ -189,16 +189,16 @@ include 'includes/header.php';
         </div>
       </div>
       <div class="field">
-        <label>Requested By / Location</label>
-        <input type="text" name="requester" placeholder="e.g. Registrar's Office, Ms. Santos, Room 204">
+        <label for="worklogRequester">Requested By / Location</label>
+        <input type="text" id="worklogRequester" name="requester" placeholder="e.g. Registrar's Office, Ms. Santos, Room 204">
       </div>
       <div class="field">
-        <label>Notes</label>
-        <textarea name="notes" placeholder="Additional remarks, parts used, follow-up needed..."></textarea>
+        <label for="worklogNotes">Notes</label>
+        <textarea id="worklogNotes" name="notes" placeholder="Additional remarks, parts used, follow-up needed..."></textarea>
       </div>
       <div class="field">
-        <label>Documentation Photos</label>
-        <input type="file" name="photos[]" accept="image/*" multiple>
+        <label for="worklogPhotos">Documentation Photos</label>
+        <input type="file" id="worklogPhotos" name="photos[]" accept="image/*" multiple>
       </div>
       <div class="form-actions">
         <button type="submit" class="btn-primary" data-loading-text="Saving entry...">Save Entry</button>
@@ -215,7 +215,8 @@ include 'includes/header.php';
     <form method="POST" style="display:flex; gap:10px;">
       <?php echo csrf_field(); ?>
       <input type="hidden" name="action" value="add_category">
-      <input type="text" name="category_name" placeholder="New category name" style="flex:1; background:var(--bg); border:1px solid var(--border); border-radius:4px; padding:9px 11px; color:var(--text);" required>
+      <label class="sr-only" for="newWorklogCategory">New category name</label>
+      <input type="text" id="newWorklogCategory" name="category_name" placeholder="New category name" style="flex:1; background:var(--bg); border:1px solid var(--border); border-radius:4px; padding:9px 11px; color:var(--text);" required>
       <button type="submit" class="btn-secondary">+ Add</button>
     </form>
   </div>
@@ -225,9 +226,9 @@ include 'includes/header.php';
   <div class="panel-header">
     <h2>Task Entries</h2>
     <form method="GET" style="display:flex; gap:8px; flex-wrap:wrap;">
-      <input type="text" name="q" placeholder="Search..." value="<?php echo h($search); ?>" style="background:var(--bg); border:1px solid var(--border); border-radius:4px; padding:7px 10px; color:var(--text); font-size:12.5px;">
-      <input type="date" name="date" value="<?php echo h($filterDate); ?>" style="background:var(--bg); border:1px solid var(--border); border-radius:4px; padding:7px 10px; color:var(--text); font-size:12.5px;">
-      <select name="status" style="background:var(--bg); border:1px solid var(--border); border-radius:4px; padding:7px 10px; color:var(--text-dim); font-size:12.5px;">
+      <input type="text" name="q" aria-label="Search task entries" placeholder="Search..." value="<?php echo h($search); ?>" style="background:var(--bg); border:1px solid var(--border); border-radius:4px; padding:7px 10px; color:var(--text); font-size:12.5px;">
+      <input type="date" name="date" aria-label="Filter task entries by date" value="<?php echo h($filterDate); ?>" style="background:var(--bg); border:1px solid var(--border); border-radius:4px; padding:7px 10px; color:var(--text); font-size:12.5px;">
+      <select name="status" aria-label="Filter task entries by status" style="background:var(--bg); border:1px solid var(--border); border-radius:4px; padding:7px 10px; color:var(--text-dim); font-size:12.5px;">
         <option value="">All Status</option>
         <option value="done" <?php echo $filterStatus==='done'?'selected':''; ?>>Done</option>
         <option value="ongoing" <?php echo $filterStatus==='ongoing'?'selected':''; ?>>Ongoing</option>

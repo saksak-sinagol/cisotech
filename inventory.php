@@ -410,8 +410,8 @@ while ($pr = $periphDisplayRes->fetch_assoc()) {
 include 'includes/header.php';
 ?>
 
-<?php if ($successMsg): ?><div class="alert alert-success"><?php echo h($successMsg); ?></div><?php endif; ?>
-<?php if ($errorMsg): ?><div class="alert alert-error"><?php echo h($errorMsg); ?></div><?php endif; ?>
+<?php if ($successMsg): ?><div class="alert alert-success" role="status"><?php echo h($successMsg); ?></div><?php endif; ?>
+<?php if ($errorMsg): ?><div class="alert alert-error" role="alert"><?php echo h($errorMsg); ?></div><?php endif; ?>
 
 <div class="activity-tabs">
   <!-- <a href="inventory.php?" class="activity-tab <?php echo $invTab==='add'?'active':''; ?>">Add Item</a> -->
@@ -634,7 +634,7 @@ include 'includes/header.php';
 <?php else: ?>
 
 <?php if ($itemTypeCount === 0): ?>
-  <div class="alert alert-error">
+  <div class="alert alert-error" role="alert">
     No item types/kinds have been defined yet (e.g. "Projector", "PC Parts").
     <?php if (is_admin()): ?>
       <a href="settings.php" style="color:inherit; text-decoration:underline;">Go to Settings to add one first</a>.

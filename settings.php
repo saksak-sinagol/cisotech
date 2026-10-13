@@ -268,8 +268,8 @@ $deptPeople = $conn->query("SELECT p.*, d.name AS dept_name FROM department_peop
 include 'includes/header.php';
 ?>
 
-<?php if ($successMsg): ?><div class="alert alert-success"><?php echo h($successMsg); ?></div><?php endif; ?>
-<?php if ($errorMsg): ?><div class="alert alert-error"><?php echo h($errorMsg); ?></div><?php endif; ?>
+<?php if ($successMsg): ?><div class="alert alert-success" role="status"><?php echo h($successMsg); ?></div><?php endif; ?>
+<?php if ($errorMsg): ?><div class="alert alert-error" role="alert"><?php echo h($errorMsg); ?></div><?php endif; ?>
 
 <!-- <p style="font-family:monospace; font-size:11px; color:#7EA3C4; margin-bottom:8px;">build: settings-tabs-v4</p> -->
 
@@ -336,7 +336,7 @@ include 'includes/header.php';
   <div class="panel-body">
     <p class="field-hint" style="margin-bottom:12px;">Add or remove the kinds of item used across Inventory (e.g. Projector, PC Parts, Laptop, Monitor). Each one belongs to a Category.</p>
     <?php if ($itemCategoryOptions->num_rows === 0): ?>
-      <div class="alert alert-error" style="margin-bottom:12px;">Add at least one Item Category first (see the "Item Categories" tab) before adding an item type.</div>
+      <div class="alert alert-error" role="alert" style="margin-bottom:12px;">Add at least one Item Category first (see the "Item Categories" tab) before adding an item type.</div>
     <?php endif; ?>
     <button type="button" class="btn-primary" onclick="openSettingsModal('itemTypes')" <?php echo $itemCategoryOptions->num_rows===0?'disabled':''; ?>>+ Item</button>
     <table class="data-table" style="margin-top:16px;">
