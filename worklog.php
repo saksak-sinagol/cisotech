@@ -9,6 +9,8 @@ $successMsg = '';
 $errorMsg = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add_category') {
+    require_csrf_token();
+
     $name = trim($_POST['category_name'] ?? '');
     if ($name !== '') {
         $stmt = $conn->prepare("INSERT IGNORE INTO categories (name) VALUES (?)");
@@ -21,6 +23,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add_entry') {
+    require_csrf_token();
+
     $logDate    = $_POST['log_date'] ?? date('Y-m-d');
     $logTime    = trim($_POST['log_time'] ?? '');
     $itemName   = trim($_POST['item_name'] ?? '');
@@ -126,6 +130,7 @@ include 'includes/header.php';
   </div>
   <div class="panel-body">
     <form method="POST" enctype="multipart/form-data">
+      <?php echo csrf_field(); ?>
       <input type="hidden" name="action" value="add_entry">
       <div class="field-row">
         <div class="field">
@@ -207,6 +212,7 @@ include 'includes/header.php';
   </div>
   <div class="panel-body">
     <form method="POST" style="display:flex; gap:10px;">
+      <?php echo csrf_field(); ?>
       <input type="hidden" name="action" value="add_category">
       <input type="text" name="category_name" placeholder="New category name" style="flex:1; background:var(--bg); border:1px solid var(--border); border-radius:4px; padding:9px 11px; color:var(--text);" required>
       <button type="submit" class="btn-secondary">+ Add</button>

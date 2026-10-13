@@ -3,11 +3,16 @@
 require_once 'includes/db.php';
 require_once 'includes/auth.php';
 
-$defaultUsername = 'admin';
-$defaultPassword = 'admin123';
-
-$superUsername = 'superadmin';
-$superPassword = 'superadmin123';
+$defaultUsername = app_bootstrap_username('BOOTSTRAP_ADMIN_USERNAME');
+$defaultPassword = app_bootstrap_password('BOOTSTRAP_ADMIN_PASSWORD');
+$superUsername = app_bootstrap_username('BOOTSTRAP_SUPERADMIN_USERNAME');
+$superPassword = app_bootstrap_password('BOOTSTRAP_SUPERADMIN_PASSWORD');
+if (strcasecmp($defaultUsername, $superUsername) === 0) {
+    throw new RuntimeException('Administrator and superadmin bootstrap usernames must differ.');
+}
+if (hash_equals($defaultPassword, $superPassword)) {
+    throw new RuntimeException('Administrator and superadmin bootstrap passwords must differ.');
+}
 
 $hash = password_hash($defaultPassword, PASSWORD_DEFAULT);
 
@@ -78,18 +83,11 @@ if ($sRow = $sRes->fetch_assoc()) {
   <div class="box">
     <h1> Setup</h1>
     <p><?php echo h($msg); ?></p>
-    <p>Login with:<br>
-      Username: <code>admin</code><br>
-      Password: <code>admin123</code>
-    </p>
+    <p>Use the administrator credentials configured in the ignored <code>.env</code> file.</p>
     <hr style="border-color:#333844; margin:18px 0;">
     <p><?php echo h($superMsg); ?></p>
-    <p>Super Admin login:<br>
-      Username: <code>superadmin</code><br>
-      Password: <code>superadmin123</code>
-    </p>
+    <p>Use the super administrator credentials configured in the ignored <code>.env</code> file.</p>
     <p><a href="login.php">Go to Login </a></p>
   </div>
 </body>
 </html>
-

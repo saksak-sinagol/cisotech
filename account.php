@@ -10,6 +10,8 @@ $errorMsg = '';
 $user = current_user();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_csrf_token();
+
     $fullName = trim($_POST['full_name'] ?? '');
     $username = trim($_POST['username'] ?? '');
     $newPassword = $_POST['new_password'] ?? '';
@@ -68,6 +70,7 @@ include 'includes/header.php';
   <div class="panel-header"><h2>Change Login Name / Password</h2></div>
   <div class="panel-body">
     <form method="POST">
+      <?php echo csrf_field(); ?>
       <div class="field">
         <label>Full Name</label>
         <input type="text" name="full_name" value="<?php echo h($user['full_name']); ?>" required>

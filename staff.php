@@ -19,6 +19,8 @@ function is_target_superadmin($conn, $id) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_csrf_token();
+
     $action = $_POST['action'] ?? '';
 
     if ($action === 'add_user') {
@@ -109,6 +111,7 @@ include 'includes/header.php';
   <div class="panel-header"><h2>Add Account (Admin or Staff)</h2></div>
   <div class="panel-body">
     <form method="POST">
+      <?php echo csrf_field(); ?>
       <input type="hidden" name="action" value="add_user">
       <div class="field-row">
         <div class="field">
@@ -164,6 +167,7 @@ include 'includes/header.php';
                 <span class="badge b-amber">Super Admin</span>
               <?php elseif ($u['id'] != $currentUserId): ?>
                 <form method="POST" style="display:inline;">
+                  <?php echo csrf_field(); ?>
                   <input type="hidden" name="action" value="change_role">
                   <input type="hidden" name="id" value="<?php echo $u['id']; ?>">
                   <select name="role" onchange="this.form.submit()" style="background:var(--bg); border:1px solid var(--border); border-radius:4px; padding:4px 6px; color:var(--text); font-size:12px;">
@@ -182,11 +186,13 @@ include 'includes/header.php';
             <td style="display:flex; gap:6px;">
               <?php if ($u['role'] !== 'superadmin' && $u['id'] != $currentUserId): ?>
                 <form method="POST">
+                  <?php echo csrf_field(); ?>
                   <input type="hidden" name="action" value="toggle_status">
                   <input type="hidden" name="id" value="<?php echo $u['id']; ?>">
                   <button type="submit" class="btn-secondary btn-sm"><?php echo $u['status']==='active'?'Disable':'Enable'; ?></button>
                 </form>
                 <form method="POST" onsubmit="return confirm('Permanently delete this account?');">
+                  <?php echo csrf_field(); ?>
                   <input type="hidden" name="action" value="delete_user">
                   <input type="hidden" name="id" value="<?php echo $u['id']; ?>">
                   <button type="submit" class="btn-danger btn-sm">Delete</button>

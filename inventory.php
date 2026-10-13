@@ -90,6 +90,7 @@ function item_type_name_for_id($conn, $itemTypeId) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add_item' && is_admin()) {
+    require_csrf_token();
 
     $poNumber    = trim($_POST['po_number'] ?? '');
     $dateAdded   = $_POST['date_added'] ?? date('Y-m-d');
@@ -152,6 +153,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add_i
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add_remark' && is_admin()) {
+    require_csrf_token();
+
     $itemId = (int)($_POST['item_id'] ?? 0);
     $remarkText = trim($_POST['remark_text'] ?? '');
     $remarkDate = $_POST['remark_date'] ?? date('Y-m-d');
@@ -641,6 +644,7 @@ include 'includes/header.php';
   </div>
   <div class="panel-body">
     <form method="POST" id="restockForm">
+      <?php echo csrf_field(); ?>
       <input type="hidden" name="action" value="add_item">
       <div class="field-row">
         <div class="field">
@@ -788,6 +792,7 @@ include 'includes/header.php';
               <tr id="remark-<?php echo $i['id']; ?>" class="expand-row" onclick="event.stopPropagation();">
                 <td colspan="9" style="background:var(--panel-2);">
                   <form method="POST" style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; padding:10px 0;">
+                    <?php echo csrf_field(); ?>
                     <input type="hidden" name="action" value="add_remark">
                     <input type="hidden" name="item_id" value="<?php echo $i['id']; ?>">
                     <div class="field" style="margin-bottom:0;">

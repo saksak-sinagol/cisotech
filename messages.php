@@ -9,6 +9,8 @@ $me = current_user();
 $errorMsg = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'send_message') {
+    require_csrf_token();
+
     $recipientId = (int)($_POST['recipient_id'] ?? 0);
     $body = trim($_POST['body'] ?? '');
 
@@ -128,6 +130,7 @@ include 'includes/header.php';
         <?php endwhile; endif; ?>
       </div>
       <form method="POST" class="msg-composer" id="msgComposerForm">
+        <?php echo csrf_field(); ?>
         <input type="hidden" name="action" value="send_message">
         <input type="hidden" name="recipient_id" value="<?php echo $otherUser['id']; ?>">
         <textarea name="body" placeholder="Write a message..." required></textarea>

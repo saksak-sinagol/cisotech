@@ -9,6 +9,8 @@ $successMsg = '';
 $errorMsg = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'mark_returned' && can_use_deployments()) {
+    require_csrf_token();
+
     $deployId = (int)($_POST['deployment_id'] ?? 0);
     $returnDate = $_POST['returned_date'] ?? date('Y-m-d');
     $returnTime = $_POST['returned_time'] ?? date('H:i:s');
@@ -287,6 +289,7 @@ include 'includes/header.php';
                   <?php endif; ?>
                   <?php if (!$d['returned_date'] && can_use_deployments()): ?>
                     <form method="POST" class="return-confirm-form" style="display:flex; gap:6px; align-items:center; margin-top:8px; flex-wrap:wrap;">
+                      <?php echo csrf_field(); ?>
                       <input type="hidden" name="action" value="mark_returned">
                       <input type="hidden" name="deployment_id" value="<?php echo $d['id']; ?>">
                       <input type="hidden" name="confirm_username" class="return-confirm-username-field">

@@ -1,2 +1,7 @@
 .env
+.env.*
+!.env.example
 config.php
+/cisotech.local-key.pem
+/vendor/
+/.phpunit.cache/

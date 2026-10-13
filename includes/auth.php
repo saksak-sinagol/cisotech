@@ -78,6 +78,43 @@ function h($str) {
     return htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 }
 
+function csrf_token() {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+
+    return $_SESSION['csrf_token'];
+}
+
+function csrf_field() {
+    return '<input type="hidden" name="csrf_token" value="' . h(csrf_token()) . '">';
+}
+
+function verify_csrf_token($token) {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    if (!is_string($token) || $token === '') {
+        return false;
+    }
+
+    $expected = $_SESSION['csrf_token'] ?? '';
+    return hash_equals($expected, $token);
+}
+
+function require_csrf_token() {
+    if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
+        http_response_code(419);
+        header('Content-Type: text/plain; charset=utf-8');
+        exit('CSRF token validation failed.');
+    }
+}
+
 function unread_message_count($conn) {
     $user = current_user();
     if (!$user) return 0;

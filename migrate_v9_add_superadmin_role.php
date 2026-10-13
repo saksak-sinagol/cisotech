@@ -3,6 +3,9 @@
 require_once 'includes/db.php';
 require_once 'includes/auth.php';
 
+$superUsername = app_bootstrap_username('BOOTSTRAP_SUPERADMIN_USERNAME');
+$superPassword = app_bootstrap_password('BOOTSTRAP_SUPERADMIN_PASSWORD');
+
 $messages_log = [];
 
 function columnHasSuperadmin9($conn, $table, $column) {
@@ -26,8 +29,6 @@ if (!columnHasSuperadmin9($conn, 'activity_log', 'actor_role')) {
     $messages_log[] = "activity_log.actor_role already allows \"superadmin\".";
 }
 
-$superUsername = 'superadmin';
-$superPassword = 'superadmin123';
 $superHash = password_hash($superPassword, PASSWORD_DEFAULT);
 
 $sStmt = $conn->prepare("SELECT id, password_hash FROM users WHERE username = ?");
@@ -49,7 +50,7 @@ if ($sRow = $sRes->fetch_assoc()) {
     $sFull = 'Super Administrator';
     $sIns->bind_param('sss', $sFull, $superUsername, $superHash);
     $sIns->execute();
-    $messages_log[] = "Default superadmin account created (username: superadmin / password: superadmin123 — change this after logging in).";
+    $messages_log[] = "Superadmin account created using the configured bootstrap username.";
 }
 ?>
 <!DOCTYPE html>
@@ -71,11 +72,8 @@ if ($sRow = $sRes->fetch_assoc()) {
     <ul>
       <?php foreach ($messages_log as $m) echo '<li>' . h($m) . '</li>'; ?>
     </ul>
-    <p>Super Admin login:<br>
-      Username: <code>superadmin</code><br>
-      Password: <code>superadmin123</code>
-    </p>
-    <p style="color:#D9A441;">This account is not created anywhere in the site's own UI — only by running setup.php or this migration. Change this password after logging in.</p>
+    <p>Use the super administrator credentials configured in the ignored <code>.env</code> file.</p>
+    <p style="color:#D9A441;">This account is created by setup.php or this migration. Remove bootstrap credentials from the environment after account creation.</p>
     <p><a href="login.php">Go to Login →</a></p>
   </div>
 </body>

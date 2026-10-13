@@ -1,0 +1,19 @@
+{
+    "name": "cisotech/work-log-inventory",
+    "description": "C1SO TECH work log and inventory application",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.1",
+        "ext-mysqli": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.5"
+    },
+    "scripts": {
+        "test": "phpunit --configuration phpunit.xml"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}

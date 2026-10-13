@@ -13,6 +13,8 @@ $userId = current_user()['id'];
 $reopenModal = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_csrf_token();
+
     $action = $_POST['action'] ?? '';
 
     if ($action === 'add_item_type') {
@@ -311,6 +313,7 @@ include 'includes/header.php';
             <td><?php echo (int)$c['type_count']; ?></td>
             <td>
               <form method="POST" onsubmit="return confirm('Delete this category?');">
+                <?php echo csrf_field(); ?>
                 <input type="hidden" name="action" value="delete_item_category">
                 <input type="hidden" name="id" value="<?php echo $c['id']; ?>">
                 <button type="submit" class="btn-danger btn-sm" <?php echo $c['type_count']>0?'disabled title="In use"':''; ?>>Delete</button>
@@ -347,6 +350,7 @@ include 'includes/header.php';
             <td style="display:flex; gap:6px;">
               <button type="button" class="btn-secondary btn-sm" onclick='openComponentsModal(<?php echo (int)$t["id"]; ?>, <?php echo json_encode(h($t["name"])); ?>)'>Components</button>
               <form method="POST" onsubmit="return confirm('Delete this item type?');">
+                <?php echo csrf_field(); ?>
                 <input type="hidden" name="action" value="delete_item_type">
                 <input type="hidden" name="id" value="<?php echo $t['id']; ?>">
                 <button type="submit" class="btn-danger btn-sm" <?php echo $t['item_count']>0?'disabled title="In use"':''; ?>>Delete</button>
@@ -377,6 +381,7 @@ include 'includes/header.php';
             <td><?php echo h($d['name']); ?></td>
             <td>
               <form method="POST" onsubmit="return confirm('Delete this department? This also removes its faculty/staff list.');">
+                <?php echo csrf_field(); ?>
                 <input type="hidden" name="action" value="delete_department">
                 <input type="hidden" name="id" value="<?php echo $d['id']; ?>">
                 <button type="submit" class="btn-danger btn-sm">Delete</button>
@@ -405,6 +410,7 @@ include 'includes/header.php';
             <td><?php echo h($p['dept_name']); ?></td>
             <td>
               <form method="POST" onsubmit="return confirm('Remove this name?');">
+                <?php echo csrf_field(); ?>
                 <input type="hidden" name="action" value="delete_department_person">
                 <input type="hidden" name="id" value="<?php echo $p['id']; ?>">
                 <button type="submit" class="btn-danger btn-sm">Delete</button>
@@ -434,6 +440,7 @@ include 'includes/header.php';
             <td><?php echo h($c['name']); ?></td>
             <td>
               <form method="POST" onsubmit="return confirm('Delete this category?');">
+                <?php echo csrf_field(); ?>
                 <input type="hidden" name="action" value="delete_category">
                 <input type="hidden" name="id" value="<?php echo $c['id']; ?>">
                 <button type="submit" class="btn-danger btn-sm">Delete</button>
@@ -478,6 +485,7 @@ include 'includes/header.php';
     <div id="settingsModal-itemCategories" class="settings-modal-pane" style="display:none;">
       <h3 class="idt-title" style="margin-bottom:18px;">Add Item Category</h3>
       <form method="POST">
+        <?php echo csrf_field(); ?>
         <input type="hidden" name="action" value="add_item_category">
         <div class="field">
           <label for="stgItemCatName">Category Name</label>
@@ -493,6 +501,7 @@ include 'includes/header.php';
     <div id="settingsModal-itemTypes" class="settings-modal-pane" style="display:none;">
       <h3 class="idt-title" style="margin-bottom:18px;">Add Model/Brand</h3>
       <form method="POST">
+        <?php echo csrf_field(); ?>
         <input type="hidden" name="action" value="add_item_type">
         <div class="field">
           <label for="stgItemTypeName">Item Brand/Model</label>
@@ -517,6 +526,7 @@ include 'includes/header.php';
     <div id="settingsModal-departments" class="settings-modal-pane" style="display:none;">
       <h3 class="idt-title" style="margin-bottom:18px;">Add Department</h3>
       <form method="POST">
+        <?php echo csrf_field(); ?>
         <input type="hidden" name="action" value="add_department">
         <div class="field">
           <label for="stgDeptName">Department Name</label>
@@ -532,6 +542,7 @@ include 'includes/header.php';
     <div id="settingsModal-deptPeople" class="settings-modal-pane" style="display:none;">
       <h3 class="idt-title" style="margin-bottom:18px;">Add Faculty/Staff</h3>
       <form method="POST">
+        <?php echo csrf_field(); ?>
         <input type="hidden" name="action" value="add_department_person">
         <div class="field">
           <label for="stgDeptPersonDept">Department</label>
@@ -556,6 +567,7 @@ include 'includes/header.php';
     <div id="settingsModal-categories" class="settings-modal-pane" style="display:none;">
       <h3 class="idt-title" style="margin-bottom:18px;">Add Work Log Category</h3>
       <form method="POST">
+        <?php echo csrf_field(); ?>
         <input type="hidden" name="action" value="add_category">
         <div class="field">
           <label for="stgCategoryName">Category Name</label>
@@ -577,6 +589,7 @@ include 'includes/header.php';
     <h3 class="idt-title" style="margin-bottom:6px;">Components of <span id="componentsModalParentName"></span></h3>
     <p class="field-hint" style="margin-bottom:14px;">Check every Kind of Item that can be picked as a component when deploying a <span id="componentsModalParentName2"></span> — each becomes its own stock-linked picker on the Deployment wizard.</p>
     <form method="POST" id="componentsModalForm">
+      <?php echo csrf_field(); ?>
       <input type="hidden" name="action" value="set_item_type_components">
       <input type="hidden" name="parent_type_id" id="componentsModalParentId">
       <div id="componentsModalList" style="max-height:320px; overflow-y:auto; border:1px solid var(--border); border-radius:6px; padding:10px;"></div>

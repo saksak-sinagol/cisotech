@@ -1,22 +1,13 @@
 -- =========================================================
 --  C1SO TECH — Work Log & Inventory System
---  Database Schema for XAMPP / phpMyAdmin (MySQL / MariaDB)
---  (Database name is c1so_tech, matching the on-screen branding)
+--  Database Schema for MySQL / MariaDB
+--  Import into the database configured by DB_NAME in .env.
 -- =========================================================
 --  HOW TO INSTALL:
---  1. Start Apache + MySQL in XAMPP Control Panel
---  2. Open http://localhost/phpmyadmin
---  3. Click "New" (left sidebar) -> Database name: c1so_tech -> Create
---     (OR just import this whole file directly; it creates the DB itself)
---  4. Click the "Import" tab -> Choose this file (database.sql) -> Go
---  5. Done. Default admin login is created for you (see bottom of file).
+--  1. Start the MySQL / MariaDB server and create the database named by DB_NAME.
+--  2. Select that database and import this file.
+--  3. Configure bootstrap credentials in .env and run setup.php.
 -- =========================================================
-
-CREATE DATABASE IF NOT EXISTS c1so_tech
-  CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
-
-USE cisotech_db;
 
 -- ---------------------------------------------------------
 -- 1. USERS (Admin + Staff accounts)
@@ -388,16 +379,6 @@ CREATE TABLE IF NOT EXISTS activity_log (
 -- =========================================================
 -- SEED DATA
 -- =========================================================
-
--- Default admin account
---   username: admin
---   password: admin123   <-- CHANGE THIS after first login (top-right menu > Change Password)
---   The password hash below is generated automatically by setup.php the
---   first time you open the site in your browser, so it always matches
---   your exact PHP/MySQL version. If the row does not exist yet, setup.php
---   creates it; if it exists with a blank/invalid hash, setup.php fixes it.
-INSERT IGNORE INTO users (full_name, username, password_hash, role, status)
-VALUES ('System Administrator', 'admin', '', 'admin', 'active');
 
 -- Starter work-log categories
 INSERT IGNORE INTO categories (name) VALUES

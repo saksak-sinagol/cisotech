@@ -91,6 +91,8 @@ function deploy_one_item($conn, $userId, $itemId, $deptId, $recipientName, $poNu
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'deploy_item' && can_use_deployments()) {
+    require_csrf_token();
+
     $itemId = (int)($_POST['item_id'] ?? 0);
     $deptId = (int)($_POST['department_id'] ?? 0);
     $recipientName = trim($_POST['recipient_name'] ?? '');
@@ -111,6 +113,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'deplo
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submit_deployment_cart' && can_use_deployments()) {
+    require_csrf_token();
+
     header('Content-Type: application/json');
     $userId = current_user()['id'];
     $deptId = (int)($_POST['department_id'] ?? 0);
@@ -324,6 +328,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_GET['ajax'] ?? '') === 'active_de
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'mark_returned' && can_use_deployments()) {
+    require_csrf_token();
+
     $deployId = (int)($_POST['deployment_id'] ?? 0);
     $returnDate = $_POST['returned_date'] ?? date('Y-m-d');
     $returnTime = $_POST['returned_time'] ?? date('H:i:s');
@@ -1265,6 +1271,7 @@ function render_deploy_records_panel($title, $groupedDeploys, $consumptionByDepl
 
     var fd = new FormData();
     fd.append('action', 'submit_deployment_cart');
+    fd.append('csrf_token', '<?php echo h(csrf_token()); ?>');
     fd.append('department_id', wizState.departmentId);
     fd.append('recipient_name', wizState.recipientName);
     fd.append('mr_number', wizState.mrNumber);
