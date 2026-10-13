@@ -2,6 +2,7 @@
 require_once 'includes/db.php';
 require_once 'includes/auth.php';
 require_login();
+enforce_sensitive_rate_limit($conn);
 
 $pageTitle = 'Departments';
 $activePage = 'departments';

@@ -2,11 +2,14 @@
 require_once 'includes/db.php';
 require_once 'includes/auth.php';
 require_login();
+enforce_sensitive_rate_limit($conn);
 
 $pageTitle = 'Reports';
 $activePage = 'reports';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'update_disposal_status' && is_admin()) {
+    require_csrf_token();
+
     $flagId = (int)($_POST['flag_id'] ?? 0);
     $newStatus = $_POST['new_status'] ?? '';
     $userId = current_user()['id'];
@@ -283,12 +286,14 @@ include 'includes/header.php';
             <td style="white-space:nowrap;">
               <?php if ($f['status'] === 'pending'): ?>
                 <form method="POST" style="display:inline;">
+                  <?php echo csrf_field(); ?>
                   <input type="hidden" name="action" value="update_disposal_status">
                   <input type="hidden" name="flag_id" value="<?php echo $f['id']; ?>">
                   <input type="hidden" name="new_status" value="reviewed">
                   <button type="submit" class="btn-secondary btn-sm">Mark Reviewed</button>
                 </form>
                 <form method="POST" style="display:inline;" onsubmit="return confirm('Mark this item as disposed?');">
+                  <?php echo csrf_field(); ?>
                   <input type="hidden" name="action" value="update_disposal_status">
                   <input type="hidden" name="flag_id" value="<?php echo $f['id']; ?>">
                   <input type="hidden" name="new_status" value="disposed">

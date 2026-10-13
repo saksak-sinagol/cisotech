@@ -4,6 +4,7 @@ require_once 'includes/auth.php';
 require_once 'includes/spec_schema.php';
 require_once 'includes/deployment_rules.php';
 require_login();
+enforce_sensitive_rate_limit($conn);
 
 $pageTitle = 'Deployments';
 $activePage = 'deployments';
@@ -84,22 +85,40 @@ function deploy_one_item($conn, $userId, $itemId, $deptId, $recipientName, $poNu
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'deploy_item' && can_use_deployments()) {
     require_csrf_token();
 
-    $itemId = (int)($_POST['item_id'] ?? 0);
-    $deptId = (int)($_POST['department_id'] ?? 0);
-    $recipientName = trim($_POST['recipient_name'] ?? '');
-    $poNumber = trim($_POST['po_number'] ?? '');
-    $pnNumber = trim($_POST['pn_number'] ?? '');
-    $qty    = max(1, (int)($_POST['quantity_deployed'] ?? 1));
-    $date   = $_POST['deployed_date'] ?? date('Y-m-d');
-    $time   = $_POST['deployed_time'] ?? date('H:i:s');
-    $remarks = trim($_POST['remarks'] ?? '');
+    $validTextInput = request_strings_are_valid($_POST, [
+        'recipient_name' => 150,
+        'po_number' => 100,
+        'pn_number' => 100,
+        'deployed_date' => 10,
+        'deployed_time' => 8,
+        'remarks' => 2000,
+    ]);
+    if (!$validTextInput) {
+        $errorMsg = 'One or more deployment fields are invalid.';
+    } else {
+    $itemId = request_positive_int($_POST, 'item_id') ?? 0;
+    $deptId = request_nonnegative_int($_POST, 'department_id') ?? 0;
+    $recipientName = request_string($_POST, 'recipient_name', 150, false) ?? '';
+    $poNumber = request_string($_POST, 'po_number', 100, false) ?? '';
+    $pnNumber = request_string($_POST, 'pn_number', 100, false) ?? '';
+    $qty = array_key_exists('quantity_deployed', $_POST)
+        ? (request_positive_int($_POST, 'quantity_deployed') ?? 0)
+        : 1;
+    $date = request_string($_POST, 'deployed_date', 10, false) ?: date('Y-m-d');
+    $time = request_string($_POST, 'deployed_time', 8, false) ?: date('H:i:s');
+    $remarks = request_string($_POST, 'remarks', 2000, false) ?? '';
     $userId = current_user()['id'];
 
-    $result = deploy_one_item($conn, $userId, $itemId, $deptId, $recipientName, $poNumber, $pnNumber, $qty, $date, $time, $remarks);
-    if (!$result['ok']) {
-        $errorMsg = $result['error'];
+    if ($itemId === 0 || $deptId === 0 || $qty === 0 || !valid_request_date($date) || !valid_request_time($time)) {
+        $errorMsg = 'Please provide a valid item, department, quantity, date, and time.';
     } else {
-        $successMsg = 'Item deployed successfully.';
+        $result = deploy_one_item($conn, $userId, $itemId, $deptId, $recipientName, $poNumber, $pnNumber, $qty, $date, $time, $remarks);
+        if (!$result['ok']) {
+            $errorMsg = $result['error'];
+        } else {
+            $successMsg = 'Item deployed successfully.';
+        }
+    }
     }
 }
 
@@ -108,18 +127,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submi
 
     header('Content-Type: application/json');
     $userId = current_user()['id'];
-    $deptId = (int)($_POST['department_id'] ?? 0);
-    $recipientName = trim($_POST['recipient_name'] ?? '');
-    $date = $_POST['deployed_date'] ?? date('Y-m-d');
-    $time = $_POST['deployed_time'] ?? date('H:i:s');
-    $mrNumber = trim($_POST['mr_number'] ?? '');
+    $deptId = request_nonnegative_int($_POST, 'department_id') ?? 0;
+    $recipientName = request_string($_POST, 'recipient_name', 150, false) ?? '';
+    $date = request_string($_POST, 'deployed_date', 10, false) ?: date('Y-m-d');
+    $time = request_string($_POST, 'deployed_time', 8, false) ?: date('H:i:s');
+    $mrNumber = request_string($_POST, 'mr_number', 100, false) ?? '';
+    if (!request_strings_are_valid($_POST, [
+        'recipient_name' => 150,
+        'deployed_date' => 10,
+        'deployed_time' => 8,
+        'mr_number' => 100,
+        'cart' => 65536,
+        'deployment_type' => 20,
+    ])) {
+        json_bad_request();
+    }
 
-    $deploymentType = $_POST['deployment_type'] ?? 'new';
-    $deploymentType = normalize_deployment_type($deploymentType);
-    $replacesDeploymentId = (int)($_POST['replaces_deployment_id'] ?? 0);
-    $cartJson = $_POST['cart'] ?? '[]';
+    $deploymentTypeInput = request_string($_POST, 'deployment_type', 20, false) ?: 'new';
+    $deploymentType = normalize_deployment_type($deploymentTypeInput);
+    $replacesDeploymentId = request_positive_int($_POST, 'replaces_deployment_id') ?? 0;
+    $cartJson = request_string($_POST, 'cart', 65536, false);
+
+    if (
+        $cartJson === null
+        || !in_array($deploymentTypeInput, ['new', 'replacement'], true)
+        || !valid_request_date($date)
+        || !valid_request_time($time)
+    ) {
+        json_bad_request();
+    }
+    if ($cartJson === '') {
+        $cartJson = '[]';
+    }
     $cart = json_decode($cartJson, true);
-
     if ($deptId === 0) {
         echo json_encode(['ok' => false, 'error' => 'Please select a department.']);
         exit;
@@ -170,16 +210,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submi
         echo json_encode(['ok' => false, 'error' => 'Add at least one item before deploying.']);
         exit;
     }
+    if (!array_is_list($cart) || count($cart) > 100) {
+        json_bad_request('A deployment cart can contain no more than 100 items.');
+    }
+    foreach ($cart as $line) {
+        if (
+            !is_array($line)
+            || request_positive_int($line, 'item_id') === null
+            || request_string($line, 'po_number', 100, false) === null
+            || request_string($line, 'pn_number', 100, false) === null
+            || request_string($line, 'item_details', 2000, false) === null
+        ) {
+            json_bad_request('A deployment cart row contains invalid values.');
+        }
+    }
 
     $deployedCount = 0;
     $errors = [];
-    $firstDeploymentId = null;
     foreach ($cart as $line) {
-        $itemId = (int)($line['item_id'] ?? 0);
-
-        $poNum = trim($line['po_number'] ?? '');
-        $pnNum = trim($line['pn_number'] ?? '');
-        $itemDetails = trim($line['item_details'] ?? '');
+        $itemId = request_positive_int($line, 'item_id') ?? 0;
+        $poNum = request_string($line, 'po_number', 100, false);
+        $pnNum = request_string($line, 'pn_number', 100, false);
+        $itemDetails = request_string($line, 'item_details', 2000, false);
         if ($poNum === '') {
             $errors[] = 'Please select a PO Number for every item in the cart.';
             continue;
@@ -208,7 +260,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submi
         $result = deploy_one_item($conn, $userId, $itemId, $deptId, $recipientName, $poNum, $pnNum, 1, $date, $time, '', $deploymentType, $replacesDeploymentId, $itemDetails, $mrNumber);
         if ($result['ok']) {
             $deployedCount++;
-            if ($firstDeploymentId === null) $firstDeploymentId = $result['deployment_id'];
             $tag = $conn->prepare("UPDATE inventory_batch_serials SET deployment_id = ? WHERE id = ?");
             $tag->bind_param('ii', $result['deployment_id'], $unitId);
             $tag->execute();
@@ -227,7 +278,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submi
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_GET['ajax'] ?? '') === 'items_by_category' && can_use_deployments()) {
     header('Content-Type: application/json');
-    $typeId = (int)($_GET['type_id'] ?? 0);
+    $typeId = request_positive_int($_GET, 'type_id');
+    if ($typeId === null) {
+        json_bad_request('A valid item type is required.');
+    }
     $stmt = $conn->prepare(
         "SELECT i.id, i.item_name,
                 (i.quantity_total - COALESCE((SELECT SUM(dd.quantity_deployed) FROM deployments dd WHERE dd.item_id=i.id AND dd.returned_date IS NULL),0)) AS available
@@ -249,7 +303,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_GET['ajax'] ?? '') === 'items_by_
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_GET['ajax'] ?? '') === 'pn_numbers_for_item' && can_use_deployments()) {
     header('Content-Type: application/json');
-    $itemId = (int)($_GET['item_id'] ?? 0);
+    $itemId = request_positive_int($_GET, 'item_id');
+    if ($itemId === null) {
+        json_bad_request('A valid inventory item is required.');
+    }
     $stmt = $conn->prepare(
         "SELECT s.pn_number, s.serial_number, b.po_number
          FROM inventory_batch_serials s
@@ -273,7 +330,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_GET['ajax'] ?? '') === 'pn_number
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_GET['ajax'] ?? '') === 'preset_specs_for_item' && can_use_deployments()) {
     header('Content-Type: application/json');
-    $itemId = (int)($_GET['item_id'] ?? 0);
+    $itemId = request_positive_int($_GET, 'item_id');
+    if ($itemId === null) {
+        json_bad_request('A valid inventory item is required.');
+    }
     $specs = load_spec_values($conn, 'inventory_item_spec_values', 'item_id', $itemId);
     echo json_encode(['ok' => true, 'specs' => $specs]);
     exit;
@@ -287,9 +347,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_GET['ajax'] ?? '') === 'current_p
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_GET['ajax'] ?? '') === 'active_deployments_for_person' && can_use_deployments()) {
     header('Content-Type: application/json');
-    $deptId = (int)($_GET['department_id'] ?? 0);
-    $recipientName = trim($_GET['recipient_name'] ?? '');
-    if ($deptId === 0 || $recipientName === '') {
+    $deptId = request_nonnegative_int($_GET, 'department_id');
+    $recipientName = request_string($_GET, 'recipient_name', 150, false);
+    if (
+        (isset($_GET['department_id']) && $deptId === null)
+        || !request_strings_are_valid($_GET, ['recipient_name' => 150])
+    ) {
+        json_bad_request('Invalid department or recipient.');
+    }
+    if ($deptId === null || $deptId === 0 || $recipientName === '') {
         echo json_encode(['ok' => true, 'items' => []]);
         exit;
     }
@@ -321,13 +387,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_GET['ajax'] ?? '') === 'active_de
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'mark_returned' && can_use_deployments()) {
     require_csrf_token();
 
-    $deployId = (int)($_POST['deployment_id'] ?? 0);
-    $returnDate = $_POST['returned_date'] ?? date('Y-m-d');
-    $returnTime = $_POST['returned_time'] ?? date('H:i:s');
-    $confirmUsername = trim($_POST['confirm_username'] ?? '');
+    if (!request_strings_are_valid($_POST, [
+        'returned_date' => 10,
+        'returned_time' => 8,
+        'confirm_username' => 50,
+    ])) {
+        $errorMsg = 'One or more return fields are invalid.';
+    } else {
+    $deployId = request_positive_int($_POST, 'deployment_id') ?? 0;
+    $returnDate = request_string($_POST, 'returned_date', 10, false) ?: date('Y-m-d');
+    $returnTime = request_string($_POST, 'returned_time', 8, false) ?: date('H:i:s');
+    $confirmUsername = request_string($_POST, 'confirm_username', 50, false) ?? '';
     $me = current_user();
 
-    if ($confirmUsername === '' || strcasecmp($confirmUsername, $me['username']) !== 0) {
+    if ($deployId === 0 || !valid_request_date($returnDate) || !valid_request_time($returnTime)) {
+        $errorMsg = 'Please provide a valid deployment, return date, and time.';
+    } elseif ($confirmUsername === '' || strcasecmp($confirmUsername, $me['username']) !== 0) {
         $errorMsg = 'Return not confirmed — the username typed did not match your account. Please try again.';
     } else {
         $infoRes = $conn->prepare(
@@ -349,6 +424,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'mark_
         }
         header('Location: deployments.php');
         exit;
+    }
     }
 }
 
@@ -397,14 +473,6 @@ if (!empty($allDeployIds)) {
     }
 }
 
-$availableItems = $conn->query(
-    "SELECT i.id, i.item_name,
-            (i.quantity_total - COALESCE((SELECT SUM(dd.quantity_deployed) FROM deployments dd WHERE dd.item_id=i.id AND dd.returned_date IS NULL),0)) AS available
-     FROM inventory_items i
-     HAVING available > 0
-     ORDER BY i.item_name"
-);
-$departments = $conn->query("SELECT * FROM departments ORDER BY name");
 $itemCategoryListPayload = [];
 $itemCatRows = $conn->query("SELECT * FROM item_categories ORDER BY name");
 while ($icRow = $itemCatRows->fetch_assoc()) {

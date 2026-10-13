@@ -4,6 +4,7 @@ require_once 'includes/auth.php';
 require_once 'includes/spec_schema.php';
 require_once 'includes/inventory_rules.php';
 require_login();
+enforce_sensitive_rate_limit($conn);
 
 $pageTitle = 'Inventory';
 $activePage = 'inventory';
@@ -93,11 +94,11 @@ function item_type_name_for_id($conn, $itemTypeId) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add_item' && is_admin()) {
     require_csrf_token();
 
-    $poNumber    = trim($_POST['po_number'] ?? '');
-    $dateAdded   = $_POST['date_added'] ?? date('Y-m-d');
-    $timeAdded   = $_POST['time_added'] ?? date('H:i:s');
+    $poNumber    = request_string($_POST, 'po_number', 100, false) ?? '';
+    $dateAdded   = request_string($_POST, 'date_added', 10, false) ?: date('Y-m-d');
+    $timeAdded   = request_string($_POST, 'time_added', 8, false) ?: date('H:i:s');
     $threshold   = normalize_low_stock_threshold($_POST['low_stock_threshold'] ?? 5);
-    $details     = trim($_POST['details'] ?? '');
+    $details     = request_string($_POST, 'details', 2000, false) ?? '';
 
     $itemNames   = $_POST['item_name'] ?? [];
     $itemTypeIds = $_POST['item_type_id'] ?? [];
@@ -106,7 +107,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add_i
     $serialsByRow = $_POST['serial_numbers'] ?? [];
     $specValuesByRow = $_POST['spec_values'] ?? [];
 
-    if ($poNumber === '') {
+    if (!valid_request_date($dateAdded) || !valid_request_time($timeAdded)) {
+        $errorMsg = 'Please enter a valid date and time.';
+    } elseif (
+        !is_array($itemNames) || count($itemNames) > 100
+        || !is_array($itemTypeIds) || !is_array($quantities)
+        || !is_array($unitPnsByRow) || !is_array($serialsByRow) || !is_array($specValuesByRow)
+    ) {
+        $errorMsg = 'The submitted inventory rows are invalid.';
+    } elseif ($poNumber === '') {
         $errorMsg = 'PO Number is required.';
     } elseif (empty($itemNames)) {
         $errorMsg = 'Add at least one item.';
@@ -114,9 +123,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add_i
         $results = [];
         $rowError = '';
         foreach ($itemNames as $idx => $rawName) {
-            $itemName   = trim($rawName ?? '');
-            $itemTypeId = (int)($itemTypeIds[$idx] ?? 0);
+            $itemName = is_string($rawName) ? trim($rawName) : '';
+            $itemTypeId = request_positive_int(['item_type_id' => $itemTypeIds[$idx] ?? null], 'item_type_id') ?? 0;
             $qty        = normalize_inventory_quantity($quantities[$idx] ?? 1);
+            if (strlen($itemName) > 150) {
+                $rowError = 'Item names must be 150 characters or fewer.';
+                continue;
+            }
             if ($itemName === '' || $itemTypeId === 0) {
                 continue;
             }
@@ -147,9 +160,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add_i
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add_remark' && is_admin()) {
     require_csrf_token();
 
-    $itemId = (int)($_POST['item_id'] ?? 0);
-    $remarkText = trim($_POST['remark_text'] ?? '');
-    $remarkDate = $_POST['remark_date'] ?? date('Y-m-d');
+    $itemId = request_positive_int($_POST, 'item_id') ?? 0;
+    $remarkText = request_string($_POST, 'remark_text', 2000) ?? '';
+    $remarkDate = request_string($_POST, 'remark_date', 10) ?? '';
 
     $nameRes = $conn->prepare("SELECT item_name FROM inventory_items WHERE id=?");
     $nameRes->bind_param('i', $itemId);
@@ -158,6 +171,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add_r
 
     if (!$row) {
         $errorMsg = 'Item not found.';
+    } elseif (!valid_request_date($remarkDate)) {
+        $errorMsg = 'Please enter a valid remark date.';
     } elseif ($remarkText === '') {
         $errorMsg = 'Please enter a remark.';
     } else {

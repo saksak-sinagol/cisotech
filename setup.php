@@ -3,6 +3,9 @@
 require_once 'includes/db.php';
 require_once 'includes/auth.php';
 
+$setupIp = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+enforce_rate_limit($conn, 'bootstrap-setup', $setupIp, 5, 3600);
+
 $defaultUsername = app_bootstrap_username('BOOTSTRAP_ADMIN_USERNAME');
 $defaultPassword = app_bootstrap_password('BOOTSTRAP_ADMIN_PASSWORD');
 $superUsername = app_bootstrap_username('BOOTSTRAP_SUPERADMIN_USERNAME');

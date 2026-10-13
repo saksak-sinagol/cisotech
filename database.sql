@@ -24,6 +24,15 @@ CREATE TABLE IF NOT EXISTS users (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ---------------------------------------------------------
+-- Request rate-limit counters (hashed keys; no raw IPs/usernames stored)
+-- ---------------------------------------------------------
+CREATE TABLE IF NOT EXISTS request_rate_limits (
+  rate_key         CHAR(64) PRIMARY KEY,
+  window_started_at BIGINT UNSIGNED NOT NULL,
+  request_count    INT UNSIGNED NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ---------------------------------------------------------
 -- 2. CATEGORIES (Work log task categories - admin/staff can add)
 -- ---------------------------------------------------------
 CREATE TABLE IF NOT EXISTS categories (

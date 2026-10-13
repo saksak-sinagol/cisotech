@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="tests/integration/bootstrap.php"
+         colors="true"
+         cacheDirectory=".phpunit.cache/integration">
+    <testsuites>
+        <testsuite name="Cisotech HTTP integration">
+            <directory>tests/integration</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <file>includes/auth.php</file>
+            <file>includes/config.php</file>
+            <file>includes/error_handling.php</file>
+            <file>includes/http_security.php</file>
+            <file>includes/deployment_rules.php</file>
+            <file>includes/inventory_rules.php</file>
+            <file>includes/spec_schema.php</file>
+        </include>
+    </source>
+</phpunit>

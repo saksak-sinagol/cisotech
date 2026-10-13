@@ -31,14 +31,45 @@ function require_login() {
         header('Location: login.php');
         exit;
     }
+
+    global $conn;
+    if (!isset($conn) || !$conn instanceof mysqli) {
+        throw new RuntimeException('An active database connection is required to validate the user session.');
+    }
+
+    $userId = (int)$_SESSION['user_id'];
+    $stmt = $conn->prepare("SELECT full_name, username, role, status FROM users WHERE id = ?");
+    if (!$stmt) {
+        throw new RuntimeException('Could not prepare the user session validation query: ' . $conn->error);
+    }
+    $stmt->bind_param('i', $userId);
+    if (!$stmt->execute()) {
+        throw new RuntimeException('Could not validate the user session: ' . $stmt->error);
+    }
+    $user = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    if (!$user || $user['status'] !== 'active') {
+        $_SESSION = [];
+        session_regenerate_id(true);
+        header('Location: login.php');
+        exit;
+    }
+
+    if (
+        ($_SESSION['full_name'] ?? null) !== $user['full_name']
+        || ($_SESSION['username'] ?? null) !== $user['username']
+        || ($_SESSION['role'] ?? null) !== $user['role']
+    ) {
+        session_regenerate_id(true);
+        $_SESSION['full_name'] = $user['full_name'];
+        $_SESSION['username'] = $user['username'];
+        $_SESSION['role'] = $user['role'];
+    }
 }
 
 function require_admin() {
-    require_login();
-    if (!is_admin()) {
-        header('Location: index.php?err=forbidden');
-        exit;
-    }
+    require_admin_for_write();
 }
 
 function require_superadmin() {
@@ -50,6 +81,7 @@ function require_superadmin() {
 }
 
 function require_admin_for_write() {
+    require_login();
     if (!is_admin()) {
         header('Location: index.php?err=forbidden');
         exit;

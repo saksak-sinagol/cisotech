@@ -5,10 +5,6 @@ require_once 'includes/auth.php';
 
 $messages_log = [];
 
-function columnExists4($conn, $table, $column) {
-    $res = $conn->query("SHOW COLUMNS FROM `$table` LIKE '$column'");
-    return $res && $res->num_rows > 0;
-}
 function tableExists4($conn, $table) {
     $res = $conn->query("SHOW TABLES LIKE '$table'");
     return $res && $res->num_rows > 0;

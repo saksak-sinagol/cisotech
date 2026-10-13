@@ -1,7 +1,8 @@
 <?php
 require_once 'includes/db.php';
 require_once 'includes/auth.php';
-require_admin();
+require_admin_for_write();
+enforce_sensitive_rate_limit($conn);
 
 $pageTitle = 'Manage Staff';
 $activePage = 'staff';

@@ -10,10 +10,11 @@ if (is_logged_in()) {
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim($_POST['username'] ?? '');
-    $password = $_POST['password'] ?? '';
+    $username = request_string($_POST, 'username', 50, false) ?? '';
+    $password = is_string($_POST['password'] ?? null) ? $_POST['password'] : '';
+    enforce_login_rate_limit($conn, $username);
 
-    if ($username === '' || $password === '') {
+    if ($username === '' || $password === '' || strlen($password) > 4096) {
         $error = 'Please enter both username and password.';
     } else {
         $stmt = $conn->prepare("SELECT id, full_name, username, password_hash, role, status FROM users WHERE username = ?");

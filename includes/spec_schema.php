@@ -31,6 +31,9 @@ const SPEC_KIND_ITEM_TYPE_NAMES = [
 ];
 
 function spec_schema_key_for_type_name($typeName) {
+    if (!is_string($typeName)) {
+        return null;
+    }
     $typeNameLower = strtolower(trim((string)$typeName));
     foreach (SPEC_KIND_ITEM_TYPE_NAMES as $key => $name) {
         if (strtolower($name) === $typeNameLower) {

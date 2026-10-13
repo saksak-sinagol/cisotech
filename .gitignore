@@ -5,3 +5,6 @@ config.php
 /cisotech.local-key.pem
 /vendor/
 /.phpunit.cache/
+/.venv/
+/.pytest_cache/
+__pycache__/
