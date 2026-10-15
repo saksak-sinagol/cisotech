@@ -10,7 +10,7 @@
     <source>
         <include>
             <file>includes/auth.php</file>
-            <file>includes/config.php</file>
+            <file>includes/app_config.php</file>
             <file>includes/error_handling.php</file>
             <file>includes/http_security.php</file>
             <file>includes/deployment_rules.php</file>

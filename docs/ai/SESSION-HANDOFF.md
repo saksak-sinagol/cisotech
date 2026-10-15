@@ -1,12 +1,36 @@
 # Session handoff
 
-Updated: 2026-10-13
+Updated: 2026-10-14
 
 ## Objective
 
-Continue validation of the approved changes now pushed to `origin/main`; run
-integration tests and collect query plans only in the isolated test
-environment.
+Complete the approved login-bootstrap bugfix. User authorized a tracked
+configuration loader and regression coverage in this checkout; do not inspect
+`.env`, change database state, or deploy.
+
+## Current task
+
+- Reference `2fcc7a3660f56e6b9ec4dae7a49c24ea` matches an Nginx error for
+  `index.php`; `includes/db.php:11` requires missing `includes/config.php`.
+- `.gitignore` excludes generic `config.php`, so add the versioned loader as
+  `includes/app_config.php` and update DB/test bootstrap references.
+- Approval is recorded in `docs/ai/CURRENT-STATE.md`.
+- Implemented the loader and added a regression test for `.env` loading and
+  process-environment precedence. PHP lint, PHP smoke checks, XML parsing, and
+  `git diff --check` passed.
+- User approved installing locked development dependencies. `composer install`
+  passed; `composer test` passed (37 tests / 190 assertions); `composer lint:php`
+  passed (75 files, no fixes required).
+- No database-backed HTTP login was tested; no service restart or deployment
+  was performed.
+- Follow-up reference `5f090312e6dbf42a0946ff4f2831028e` is for `login.php` and
+  points to `app_env_required()` rejecting an unset or empty required setting.
+  Ask the user to verify required DB setting presence only; never request or
+  inspect their values.
+- User confirmed only `CISOTECH_TEST_DB_*` exists in SSH/CLI; `.env` is absent
+  and PHP-FPM has no `DB_*` configuration. Login requires the actual app
+  settings `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`, and `DB_PORT`.
+- No application deployment is authorized.
 
 ## Completed
 
@@ -116,18 +140,7 @@ environment.
 
 ## Exact next action
 
-Set up or enable the isolated integration test environment, then run
-`composer test:integration` and gather EXPLAIN plans for the query paths
-changed or indexed here. Preserve all uncommitted changes; do not point tests
-at a development or production database.
-
-For UI work, review the completed evidence in
-`docs/planning/ui-quality-plan.md`; perform manual screen-reader testing when
-the supported assistive-technology/browser setup is available.
-
-The UI review passed after the live-region correction. Its isolated commit
-`35dcc1dd0ee85a053ae42253556a05864a42e7c9` remains on
-`origin/ui-quality-accessibility`; the complete change set is now included on
-`origin/main`. No server deployment was performed. Full authenticated E2E and
-assistive-technology checks remain outstanding; use only the isolated
-`cisotech_test_` database and loopback server for integration tests.
+Have the user configure the actual application `DB_*` settings for PHP-FPM or
+create the root `.env` from `.env.example` with the correct application values,
+then retry login. Do not inspect `.env`, make an HTTP login request against the
+active application, or deploy without separate authorization.

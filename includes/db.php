@@ -8,7 +8,7 @@ require_once __DIR__ . '/http_security.php';
 apply_security_headers();
 enforce_same_origin_policy();
 
-require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/app_config.php';
 
 $dbHost = app_env_required('DB_HOST');
 $dbName = app_env_required('DB_NAME');

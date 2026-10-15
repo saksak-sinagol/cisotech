@@ -1,4 +1,4 @@
 <?php
 
 putenv('APP_TIMEZONE=UTC');
-require_once dirname(__DIR__) . '/includes/config.php';
+require_once dirname(__DIR__) . '/includes/app_config.php';

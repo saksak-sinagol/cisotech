@@ -1,7 +1,15 @@
 <?php
 require_once 'includes/db.php';
 require_once 'includes/auth.php';
-require_superadmin();
+if (PHP_SAPI === 'cli') {
+    $targetDb = app_env('DB_NAME') ?? '';
+    if (!str_starts_with($targetDb, 'cisotech_test_')) {
+        fwrite(STDERR, "CLI runs are only allowed against cisotech_test_* databases.\n");
+        exit(1);
+    }
+} else {
+    require_superadmin();
+}
 
 $indexes = [
     'work_logs' => [

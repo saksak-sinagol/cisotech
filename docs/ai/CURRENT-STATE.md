@@ -1,18 +1,29 @@
 # Current state
 
-Last updated: 2026-10-13
+Last updated: 2026-10-14
 
 ## Active phase and objective
 
-- Phase: VALIDATION (approved UI quality improvements).
-- Objective: validate and publish the approved accumulated workflow,
-  performance, refactor, formatting, and UI improvements.
-- Scope approval: user approved the proposed refactor plan in conversation on
-  2026-10-13. Integration-test file splitting remains blocked pending an
-  executable isolated HTTP test environment.
+- Phase: VALIDATION (approved login-bootstrap bugfix).
+- Objective: validate the restored configuration bootstrap that prevented
+  database-backed pages, including login, from loading.
+- Scope approval: user authorized adding a versioned environment configuration
+  loader and regression coverage in this checkout on 2026-10-14. Do not inspect
+  `.env`, change database state, or deploy.
 
 ## Progress
 
+- Confirmed reference `2fcc7a3660f56e6b9ec4dae7a49c24ea` in the Nginx error
+  log: `index.php` fails while `includes/db.php` requires the absent
+  `includes/config.php`. The clean Git tree has no tracked loader; `.gitignore`
+  excludes files named `config.php`.
+- Approved implementation plan: add a tracked `includes/app_config.php` that
+  follows README configuration behavior, wire the DB and PHPUnit bootstraps to
+  it, and run focused PHP/configuration checks. No schema, database, secret,
+  or deployment changes.
+- Completed: added `includes/app_config.php`, routed application/test
+  bootstraps through it, and added a regression test for `.env` loading and
+  process-environment precedence.
 - Completed: repository assessment; confirmed PHP 8.1/MariaDB, Composer,
   PHPUnit, pytest/Playwright, existing working tree changes, and current
   customization files.
@@ -120,6 +131,23 @@ Last updated: 2026-10-13
   third-party and was not modified.
 - Not run: the authenticated web migration page, EXPLAIN plans, or query
   timings. The test database contained no active superadmin.
+- Login-bootstrap bugfix: changed PHP files pass `php -l`; a PHP smoke check
+  passed for environment-file loading, process-variable precedence, and font
+  URL escaping; both PHPUnit XML files parse; `git diff --check` passes.
+- Login-bootstrap bugfix: user authorized installing locked Composer
+  development dependencies. `composer install --no-interaction --prefer-dist
+  --no-progress` passed; `composer test` passed (37 tests, 190 assertions);
+  `composer lint:php` passed (75 files, none fixable).
+- Login-bootstrap bugfix: no database-backed HTTP login request was tested,
+  and no deployment or service restart was performed.
+- Follow-up reference `5f090312e6dbf42a0946ff4f2831028e` is for `login.php` and
+  points to `app_env_required()` rejecting an unset or empty required setting.
+  The application logger intentionally omits the setting name/value; verify
+  required DB settings in PHP's environment without disclosing their values.
+- User confirmed only `CISOTECH_TEST_DB_*` variables are set in the SSH/CLI
+  environment; the root `.env` is absent and PHP-FPM has no `DB_*` settings.
+  The login bootstrap requires `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`, and
+  `DB_PORT`; test-database CLI variables are not a substitute.
 - Inventory tab partial extraction was abandoned after a PHP parse check exposed
   a cross-file template-control-flow boundary; the original template was
   restored and the unit suite plus PHP lint passed afterward.
@@ -133,13 +161,14 @@ Last updated: 2026-10-13
 - Workflow scaffolding: APPROVED by explicit user request, 2026-10-13.
 - UI quality requirements and implementation plan:
   APPROVED by user, 2026-10-13.
+- Login-bootstrap bugfix: user authorized the focused configuration-loader
+  repair and regression coverage in this checkout on 2026-10-14.
 - Future feature requirements and execution plans: NOT APPROVED until a
   stakeholder explicitly records approval in the relevant artifacts.
 
 ## Next action
 
-Review [the approved UI plan](../planning/ui-quality-plan.md) and run manual
-screen-reader/full authenticated E2E checks when available. Configure the
-isolated HTTP integration-test environment and gather query plans before
-making performance claims. Changes are pushed to `origin/main`; no server
-deployment was requested or performed.
+Configure the actual application `DB_*` settings for PHP-FPM (or create the
+root `.env` from `.env.example` with the application's values and readable
+permissions), without sharing values. Then retry login. Do not inspect `.env`,
+deploy, or restart services without separate authorization.

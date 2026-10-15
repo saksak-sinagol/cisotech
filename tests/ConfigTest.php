@@ -41,6 +41,57 @@ final class ConfigTest extends TestCase
         });
     }
 
+    public function testEnvironmentFileDoesNotOverrideProcessEnvironment(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'cisotech-env-test-');
+        self::assertNotFalse($path);
+        $names = ['CISOTECH_TEST_DOTENV_VALUE', 'CISOTECH_TEST_PROCESS_VALUE'];
+        $original = [];
+        foreach ($names as $name) {
+            $original[$name] = [
+                'environment' => getenv($name),
+                'env' => $_ENV[$name] ?? null,
+                'has_env' => array_key_exists($name, $_ENV),
+                'server' => $_SERVER[$name] ?? null,
+                'has_server' => array_key_exists($name, $_SERVER),
+            ];
+        }
+
+        try {
+            putenv($names[0]);
+            unset($_ENV[$names[0]], $_SERVER[$names[0]]);
+            putenv($names[1] . '=from-process');
+            $_ENV[$names[1]] = 'from-process';
+            $_SERVER[$names[1]] = 'from-process';
+            self::assertNotFalse(file_put_contents(
+                $path,
+                $names[0] . '="from-file"' . "\n" . $names[1] . '="also-from-file"' . "\n"
+            ));
+
+            app_load_env_file($path);
+
+            self::assertSame('from-file', app_env($names[0]));
+            self::assertSame('from-process', app_env($names[1]));
+        } finally {
+            foreach ($original as $name => $values) {
+                putenv($name . ($values['environment'] === false ? '' : '=' . $values['environment']));
+                if ($values['has_env']) {
+                    $_ENV[$name] = $values['env'];
+                } else {
+                    unset($_ENV[$name]);
+                }
+                if ($values['has_server']) {
+                    $_SERVER[$name] = $values['server'];
+                } else {
+                    unset($_SERVER[$name]);
+                }
+            }
+            if (is_file($path)) {
+                unlink($path);
+            }
+        }
+    }
+
     public function testBootstrapCredentialsEnforceMinimumStrengthAndRealUsername(): void
     {
         $this->withEnvironment([

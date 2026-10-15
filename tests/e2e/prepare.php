@@ -1,7 +1,7 @@
 <?php
 
 require_once dirname(__DIR__, 2) . '/includes/db.php';
-require_once dirname(__DIR__, 2) . '/includes/config.php';
+require_once dirname(__DIR__, 2) . '/includes/app_config.php';
 
 $databaseName = app_env_required('DB_NAME');
 $configuredTestDatabase = app_env_required('CISOTECH_E2E_DB_NAME');
